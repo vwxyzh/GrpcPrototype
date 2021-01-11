@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+import "google/protobuf/any.proto";
+import "google/protobuf/empty.proto";
+
+package proxy;
+
+// service for server.
+service Server {
+  rpc OnConnect (google.protobuf.Empty) returns (stream ClientConnect);
+  rpc AckConnect (ClientConnectAck) returns (google.protobuf.Empty);
+  rpc OnDisconnect (google.protobuf.Empty) returns (stream ClientDisconnect);
+  rpc OnMessage (ListenRequest) returns (stream ClientMessage);
+  rpc SendTo (SendToRequest) returns (google.protobuf.Empty);
+  rpc Broadcast (BroadcastRequest) returns (google.protobuf.Empty);
+}
+
+// common for server.
+message ListenRequest {
+  string action = 1;
+  repeated string requiredHeader = 2;
+  repeated string filter = 3;
+}
+
+message ClientConnect {
+  ClientInfo client = 1;
+}
+
+message ClientConnectAck {
+  ClientInfo client = 1;
+  bool allow = 2;
+}
+
+message ClientDisconnect {
+  ClientInfo client = 1;
+}
+
+message ClientInfo {
+  string connectionId = 1;
+  string user = 2;
+  repeated string claims = 3;
+  map<string,string> extenstions = 4;
+}
+
+message ClientMessage {
+  ClientInfo client = 1;
+  google.protobuf.Any body = 2;
+}
+
+message SendToRequest {
+  repeated string connectionId = 1;
+  google.protobuf.Any body = 2;
+}
+
+message BroadcastRequest {
+  repeated string excludeConnectionId = 1;
+  google.protobuf.Any body = 2;
+}
+
+// common for client
+message ClientMessageWS {
+  string action = 1;
+  google.protobuf.Any body = 2;
+}
